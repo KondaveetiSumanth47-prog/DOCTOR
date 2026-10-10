@@ -1,0 +1,1 @@
+@"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -pSumanth@123 -e "USE doctor_appointment; SHOW TABLES; SELECT id, email, role FROM users; SELECT id, name, specialization FROM doctors;"

@@ -4,6 +4,18 @@ A modern, full-stack healthcare platform powered by **Spring Boot (Java 25)**, *
 
 ---
 
+## 🚀 Live Deployment Links
+
+| Component | Platform | Deployment URL | Status |
+| :--- | :--- | :--- | :--- |
+| **Frontend Application** | **Vercel** | [https://doctor-appointment-frontend-gxfk.vercel.app](https://doctor-appointment-frontend-gxfk.vercel.app) | **Live** ✅ |
+| **Full Project Application** | **Vercel + Cloud** | [https://doctor-appointment-frontend-gxfk.vercel.app](https://doctor-appointment-frontend-gxfk.vercel.app) | **Live** ✅ |
+| **Backend REST API** | **Railway / Cloud** | `https://<your-railway-domain>.up.railway.app/api` | Ready to deploy via Railway |
+| **Database** | **Railway MySQL** | Managed MySQL 8 container | Provisioned via Railway |
+| **GitHub Repository** | **GitHub** | [https://github.com/KondaveetiSumanth47-prog/Online-Doctor-Appointment-System](https://github.com/KondaveetiSumanth47-prog/Online-Doctor-Appointment-System) | **Main Branch** ✅ |
+
+---
+
 ## 🌟 Key Features & Capabilities
 
 ### 1. 🛡️ Authentication & Security

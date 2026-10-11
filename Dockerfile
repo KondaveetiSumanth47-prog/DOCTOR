@@ -27,7 +27,7 @@ FROM eclipse-temurin:25-jre AS runner
 WORKDIR /app
 
 # Create a non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+RUN useradd -m appuser && chown -R appuser:appuser /app
 USER appuser
 
 # Copy the generated executable JAR from builder stage

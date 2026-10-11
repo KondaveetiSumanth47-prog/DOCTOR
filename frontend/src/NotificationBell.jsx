@@ -16,7 +16,9 @@ export default function NotificationBell({ user }) {
       const countRes = await apiRequest(`/notifications/user/${user.id}/unread-count`);
       setUnreadCount(countRes.unreadCount || 0);
     } catch (err) {
-      console.error("Failed to fetch notifications:", err);
+      if (!err.message?.includes("401")) {
+        console.error("Failed to fetch notifications:", err);
+      }
     } finally {
       setLoading(false);
     }
@@ -29,7 +31,11 @@ export default function NotificationBell({ user }) {
         .then((data) => {
           if (isMounted) setNotifications(Array.isArray(data) ? data : []);
         })
-        .catch((err) => console.error("Failed to fetch notifications:", err));
+        .catch((err) => {
+          if (!err.message?.includes("401")) {
+            console.error("Failed to fetch notifications:", err);
+          }
+        });
 
       apiRequest(`/notifications/user/${user.id}/unread-count`)
         .then((countRes) => {

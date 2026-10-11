@@ -35,16 +35,25 @@ public class AuthController {
     private final SecurityContextRepository securityContextRepository;
     private final CsrfTokenRepository csrfTokenRepository;
     private final AuthService authService;
+    private final com.doctorappointment.repository.UserRepository userRepository;
+    private final com.doctorappointment.repository.DoctorRepository doctorRepository;
+    private final com.doctorappointment.repository.PatientRepository patientRepository;
 
     public AuthController(
             AuthenticationManager authenticationManager,
             SecurityContextRepository securityContextRepository,
             CsrfTokenRepository csrfTokenRepository,
-            AuthService authService) {
+            AuthService authService,
+            com.doctorappointment.repository.UserRepository userRepository,
+            com.doctorappointment.repository.DoctorRepository doctorRepository,
+            com.doctorappointment.repository.PatientRepository patientRepository) {
         this.authenticationManager = authenticationManager;
         this.securityContextRepository = securityContextRepository;
         this.csrfTokenRepository = csrfTokenRepository;
         this.authService = authService;
+        this.userRepository = userRepository;
+        this.doctorRepository = doctorRepository;
+        this.patientRepository = patientRepository;
     }
 
     @GetMapping("/csrf")
@@ -131,6 +140,31 @@ public class AuthController {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException(
                         "Authenticated user has no application role"));
-        return new AuthResponse(authentication.getName(), role);
+
+        String email = AuthService.normalizeEmail(authentication.getName());
+        com.doctorappointment.entity.User user = userRepository.findByEmail(email).orElse(null);
+        Long userId = user != null ? user.getId() : null;
+        String name = user != null ? user.getName() : email;
+
+        com.doctorappointment.entity.Doctor doctor = null;
+        com.doctorappointment.entity.Patient patient = null;
+
+        if ("DOCTOR".equalsIgnoreCase(role)) {
+            doctor = doctorRepository.findByEmail(email).orElse(null);
+            if (doctor == null && user != null) {
+                com.doctorappointment.entity.Doctor newDoc = new com.doctorappointment.entity.Doctor(
+                        user.getName(), email, "", "General Medicine", "MBBS", 1);
+                doctor = doctorRepository.save(newDoc);
+            }
+        } else if ("PATIENT".equalsIgnoreCase(role)) {
+            patient = patientRepository.findByEmail(email).orElse(null);
+            if (patient == null && user != null) {
+                com.doctorappointment.entity.Patient newPat = new com.doctorappointment.entity.Patient(
+                        user.getName(), email, "", null, "Other");
+                patient = patientRepository.save(newPat);
+            }
+        }
+
+        return new AuthResponse(userId, email, name, role, doctor, patient);
     }
 }

@@ -1,4 +1,17 @@
 package com.doctorappointment.dto;
 
-public record AuthResponse(String email, String role) {
+import com.doctorappointment.entity.Doctor;
+import com.doctorappointment.entity.Patient;
+
+public record AuthResponse(
+        Long id,
+        String email,
+        String name,
+        String role,
+        Doctor doctor,
+        Patient patient
+) {
+    public AuthResponse(String email, String role) {
+        this(null, email, null, role, null, null);
+    }
 }

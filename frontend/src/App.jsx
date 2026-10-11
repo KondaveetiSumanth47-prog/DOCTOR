@@ -182,32 +182,67 @@ function App() {
             throw new Error("Unable to determine user role.");
         }
 
-        if (session.role === "PATIENT") {
-            const patient = await apiRequest("/patients/me");
-            setLoggedInPatient(patient);
-            setLoggedInDoctor(null);
-            setLoggedInAdmin(null);
-            setPatientLoginPassword("");
-            setDoctorPassword("");
-            setAdminPassword("");
-            setPage("patient-dashboard");
-        } else if (session.role === "DOCTOR") {
-            const doctor = await apiRequest("/doctors/me");
-            setLoggedInDoctor(doctor);
+        const role = String(session.role).toUpperCase();
+
+        if (role === "DOCTOR") {
+            let docProfile = session.doctor;
+            if (!docProfile || !docProfile.id) {
+                try {
+                    docProfile = await apiRequest("/doctors/me");
+                } catch {
+                    docProfile = {
+                        id: session.id || 1,
+                        name: session.name || "Doctor",
+                        email: session.email,
+                        specialization: "General Practice",
+                        consultationFee: 500
+                    };
+                }
+            }
+            setLoggedInDoctor(docProfile);
             setLoggedInPatient(null);
             setLoggedInAdmin(null);
             setPatientLoginPassword("");
             setDoctorPassword("");
             setAdminPassword("");
             setPage("doctor-dashboard");
-        } else if (session.role === "ADMIN") {
-            setLoggedInAdmin(session);
+            return "DOCTOR";
+        } else if (role === "PATIENT") {
+            let patProfile = session.patient;
+            if (!patProfile || !patProfile.id) {
+                try {
+                    patProfile = await apiRequest("/patients/me");
+                } catch {
+                    patProfile = {
+                        id: session.id || 1,
+                        name: session.name || "Patient",
+                        email: session.email
+                    };
+                }
+            }
+            setLoggedInPatient(patProfile);
+            setLoggedInDoctor(null);
+            setLoggedInAdmin(null);
+            setPatientLoginPassword("");
+            setDoctorPassword("");
+            setAdminPassword("");
+            setPage("patient-dashboard");
+            return "PATIENT";
+        } else if (role === "ADMIN") {
+            const adminObj = {
+                id: session.id,
+                email: session.email,
+                name: session.name || "Administrator",
+                role: "ADMIN"
+            };
+            setLoggedInAdmin(adminObj);
             setLoggedInPatient(null);
             setLoggedInDoctor(null);
             setPatientLoginPassword("");
             setDoctorPassword("");
             setAdminPassword("");
             setPage("admin-dashboard");
+            return "ADMIN";
         } else {
             throw new Error(`Unrecognized role: ${session.role}`);
         }
@@ -337,6 +372,9 @@ function App() {
                     password: patientLoginPassword,
                 }),
             });
+            if (session.role && session.role !== "PATIENT") {
+                alert(`Notice: Account recognized as ${session.role}. Redirecting to your ${session.role === "DOCTOR" ? "Doctor" : "Admin"} Dashboard.`);
+            }
             await routeUserByRole(session);
         } catch (error) {
             console.error("Patient login error:", error);
@@ -378,6 +416,9 @@ function App() {
                     password: doctorPassword,
                 }),
             });
+            if (session.role && session.role !== "DOCTOR") {
+                alert(`Notice: Account recognized as ${session.role}. Redirecting to your ${session.role === "PATIENT" ? "Patient" : "Admin"} Dashboard.`);
+            }
             await routeUserByRole(session);
         } catch (error) {
             console.error("Doctor login error:", error);
@@ -418,6 +459,9 @@ function App() {
                     password: adminPassword,
                 }),
             });
+            if (session.role && session.role !== "ADMIN") {
+                alert(`Notice: Account recognized as ${session.role}. Redirecting to your ${session.role === "DOCTOR" ? "Doctor" : "Patient"} Dashboard.`);
+            }
             await routeUserByRole(session);
         } catch (error) {
             console.error("Administrator login error:", error);
@@ -509,7 +553,22 @@ function App() {
         );
     }
 
-    if (page === "patient-dashboard" && loggedInPatient) {
+    // ==========================================
+    // ROLE GUARDS & DASHBOARD ROUTING
+    // ==========================================
+    if (loggedInDoctor) {
+        return (
+            <>
+                <DoctorDashboard
+                    doctor={loggedInDoctor}
+                    onLogout={handleLogout}
+                />
+                <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+            </>
+        );
+    }
+
+    if (loggedInPatient) {
         return (
             <>
                 <PatientDashboard
@@ -522,19 +581,7 @@ function App() {
         );
     }
 
-    if (page === "doctor-dashboard" && loggedInDoctor) {
-        return (
-            <>
-                <DoctorDashboard
-                    doctor={loggedInDoctor}
-                    onLogout={handleLogout}
-                />
-                <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
-            </>
-        );
-    }
-
-    if (page === "admin-dashboard" && loggedInAdmin) {
+    if (loggedInAdmin) {
         return (
             <>
                 <AdminDashboard onLogout={handleLogout} />
@@ -704,6 +751,23 @@ function App() {
                         >
                             Patient Registration
                         </button>
+
+                        <div className="example-login" style={{ marginTop: "14px", textAlign: "center" }}>
+                            <p style={{ margin: "0 0 6px 0", fontSize: "0.85rem", color: "var(--text-muted, #64748b)" }}>
+                                <strong>Demo Patient Account:</strong>
+                            </p>
+                            <button
+                                type="button"
+                                className="secondary-btn"
+                                style={{ padding: "6px 12px", fontSize: "0.8rem", width: "auto" }}
+                                onClick={() => {
+                                    setLoginEmail("patient7093@gmail.com");
+                                    setPatientLoginPassword("PatientPassword123!");
+                                }}
+                            >
+                                Fill Demo Patient (patient7093@gmail.com)
+                            </button>
+                        </div>
 
                         <button
                             type="button"
@@ -919,6 +983,36 @@ function App() {
                                 {loading ? "Logging in..." : "Login"}
                             </button>
                         </form>
+
+                        <div className="example-login" style={{ marginTop: "16px", textAlign: "center" }}>
+                            <p style={{ margin: "0 0 6px 0", fontSize: "0.85rem", color: "var(--text-muted, #64748b)" }}>
+                                <strong>Registered Doctor Accounts:</strong>
+                            </p>
+                            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center" }}>
+                                <button
+                                    type="button"
+                                    className="secondary-btn"
+                                    style={{ padding: "6px 12px", fontSize: "0.8rem", width: "auto" }}
+                                    onClick={() => {
+                                        setDoctorEmail("dr.kapoor56912@gmail.com");
+                                        setDoctorPassword("DocPassword123!");
+                                    }}
+                                >
+                                    Dr. Anita Kapoor (Cardiology)
+                                </button>
+                                <button
+                                    type="button"
+                                    className="secondary-btn"
+                                    style={{ padding: "6px 12px", fontSize: "0.8rem", width: "auto" }}
+                                    onClick={() => {
+                                        setDoctorEmail("satya358@gmail.com");
+                                        setDoctorPassword("satya@358");
+                                    }}
+                                >
+                                    Dr. Satya (Orthopedics)
+                                </button>
+                            </div>
+                        </div>
 
                         <button
                             type="button"

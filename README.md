@@ -8,8 +8,8 @@ A modern, full-stack healthcare platform powered by **Spring Boot (Java 25)**, *
 
 | Component | Platform | Deployment URL | Status |
 | :--- | :--- | :--- | :--- |
-| **Frontend Application** | **Vercel** | [https://doctor-appointment-frontend-gxfk.vercel.app](https://doctor-appointment-frontend-gxfk.vercel.app) | **Live** ✅ |
-| **Full Project Application** | **Vercel + Cloud** | [https://doctor-appointment-frontend-gxfk.vercel.app](https://doctor-appointment-frontend-gxfk.vercel.app) | **Live** ✅ |
+| **Frontend Application** | **Vercel** | [https://online-doctor-appointment-system-gamma.vercel.app](https://online-doctor-appointment-system-gamma.vercel.app) | **Live** ✅ |
+| **Full Project Application** | **Vercel + Cloud** | [https://online-doctor-appointment-system-gamma.vercel.app](https://online-doctor-appointment-system-gamma.vercel.app) | **Live** ✅ |
 | **Backend REST API** | **Railway / Cloud** | `https://<your-railway-domain>.up.railway.app/api` | Ready to deploy via Railway |
 | **Database** | **Railway MySQL** | Managed MySQL 8 container | Provisioned via Railway |
 | **GitHub Repository** | **GitHub** | [https://github.com/KondaveetiSumanth47-prog/Online-Doctor-Appointment-System](https://github.com/KondaveetiSumanth47-prog/Online-Doctor-Appointment-System) | **Main Branch** ✅ |

@@ -11,7 +11,7 @@ services:
           name: doctor-appointment-db
           property: connectionString
       - key: FRONTEND_ORIGIN
-        value: https://*.vercel.app
+        value: https://online-doctor-appointment-system-gamma.vercel.app
       - key: SESSION_COOKIE_SAMESITE
         value: none
       - key: SESSION_COOKIE_SECURE

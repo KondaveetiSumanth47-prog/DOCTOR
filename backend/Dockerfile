@@ -35,6 +35,8 @@ COPY --from=builder --chown=appuser:appuser /app/target/*.jar app.jar
 
 # Render assigns port dynamically via $PORT environment variable (defaults to 10000)
 ENV PORT=10000
+ENV SESSION_COOKIE_SAMESITE=none
+ENV SESSION_COOKIE_SECURE=true
 EXPOSE 10000
 
 # Run Spring Boot with container-aware RAM settings

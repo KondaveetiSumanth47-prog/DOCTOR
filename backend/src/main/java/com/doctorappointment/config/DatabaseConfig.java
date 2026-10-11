@@ -2,6 +2,10 @@ package com.doctorappointment.config;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +22,11 @@ public class DatabaseConfig {
 
     private static final Logger log = LoggerFactory.getLogger(DatabaseConfig.class);
 
+    private static final Pattern MYSQL_URI_PATTERN =
+            Pattern.compile("^mysql://([^:]+):([^@]+)@([^:/]+)(?::(\\d+))?/(.+)$");
+    private static final Pattern POSTGRES_URI_PATTERN =
+            Pattern.compile("^(?:postgres|postgresql)://([^:]+):([^@]+)@([^:/]+)(?::(\\d+))?/(.+)$");
+
     @Bean
     @Primary
     public DataSource dataSource(Environment env) {
@@ -29,21 +38,35 @@ public class DatabaseConfig {
 
         // 1. Detect MySQL URL format (Railway, Docker, mysql://user:pass@host:port/dbname)
         if (mysqlUrl != null && !mysqlUrl.isBlank() && mysqlUrl.startsWith("mysql://")) {
+            String username = "";
+            String password = "";
+            String host = "";
+            int port = 3306;
+            String path = "";
+
             try {
                 URI uri = new URI(mysqlUrl);
-                String host = uri.getHost();
-                int port = uri.getPort() == -1 ? 3306 : uri.getPort();
-                String path = uri.getPath();
+                host = uri.getHost();
+                port = uri.getPort() == -1 ? 3306 : uri.getPort();
+                path = uri.getPath();
                 String userInfo = uri.getUserInfo();
-                String username = "";
-                String password = "";
-
                 if (userInfo != null && userInfo.contains(":")) {
                     String[] credentials = userInfo.split(":", 2);
-                    username = credentials[0];
-                    password = credentials[1];
+                    username = URLDecoder.decode(credentials[0], StandardCharsets.UTF_8);
+                    password = URLDecoder.decode(credentials[1], StandardCharsets.UTF_8);
                 }
+            } catch (URISyntaxException e) {
+                Matcher m = MYSQL_URI_PATTERN.matcher(mysqlUrl);
+                if (m.find()) {
+                    username = URLDecoder.decode(m.group(1), StandardCharsets.UTF_8);
+                    password = URLDecoder.decode(m.group(2), StandardCharsets.UTF_8);
+                    host = m.group(3);
+                    port = m.group(4) != null ? Integer.parseInt(m.group(4)) : 3306;
+                    path = "/" + m.group(5);
+                }
+            }
 
+            if (host != null && !host.isBlank()) {
                 String jdbcUrl = "jdbc:mysql://" + host + ":" + port + path
                         + "?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
                 log.info("Configured MySQL datasource from URL for host: {}:{}", host, port);
@@ -54,29 +77,41 @@ public class DatabaseConfig {
                         .username(username)
                         .password(password)
                         .build();
-            } catch (URISyntaxException e) {
-                log.warn("Failed to parse MySQL URL as URI, falling back to default datasource: {}", e.getMessage());
             }
         }
 
         // 2. Detect PostgreSQL URL format (Render, Neon, postgres:// or postgresql://)
         if (databaseUrl != null && !databaseUrl.isBlank() &&
                 (databaseUrl.startsWith("postgres://") || databaseUrl.startsWith("postgresql://"))) {
+            String username = "";
+            String password = "";
+            String host = "";
+            int port = 5432;
+            String path = "";
+
             try {
                 URI uri = new URI(databaseUrl);
-                String host = uri.getHost();
-                int port = uri.getPort() == -1 ? 5432 : uri.getPort();
-                String path = uri.getPath();
+                host = uri.getHost();
+                port = uri.getPort() == -1 ? 5432 : uri.getPort();
+                path = uri.getPath();
                 String userInfo = uri.getUserInfo();
-                String username = "";
-                String password = "";
-
                 if (userInfo != null && userInfo.contains(":")) {
                     String[] credentials = userInfo.split(":", 2);
-                    username = credentials[0];
-                    password = credentials[1];
+                    username = URLDecoder.decode(credentials[0], StandardCharsets.UTF_8);
+                    password = URLDecoder.decode(credentials[1], StandardCharsets.UTF_8);
                 }
+            } catch (URISyntaxException e) {
+                Matcher m = POSTGRES_URI_PATTERN.matcher(databaseUrl);
+                if (m.find()) {
+                    username = URLDecoder.decode(m.group(1), StandardCharsets.UTF_8);
+                    password = URLDecoder.decode(m.group(2), StandardCharsets.UTF_8);
+                    host = m.group(3);
+                    port = m.group(4) != null ? Integer.parseInt(m.group(4)) : 5432;
+                    path = "/" + m.group(5);
+                }
+            }
 
+            if (host != null && !host.isBlank()) {
                 String jdbcUrl = "jdbc:postgresql://" + host + ":" + port + path;
                 log.info("Configured PostgreSQL datasource from DATABASE_URL for host: {}:{}", host, port);
 
@@ -86,8 +121,6 @@ public class DatabaseConfig {
                         .username(username)
                         .password(password)
                         .build();
-            } catch (URISyntaxException e) {
-                log.warn("Failed to parse DATABASE_URL as URI, falling back to default datasource: {}", e.getMessage());
             }
         }
 

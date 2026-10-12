@@ -139,12 +139,14 @@ public class DatabaseConfig {
         }
 
         var builder = DataSourceBuilder.create();
-        if (driver != null && !driver.isBlank()) {
-            builder.driverClassName(driver);
+        if (url != null && url.contains(":mysql:")) {
+            builder.driverClassName("com.mysql.cj.jdbc.Driver");
         } else if (url != null && url.contains(":postgresql:")) {
             builder.driverClassName("org.postgresql.Driver");
-        } else if (url != null && url.contains(":mysql:")) {
-            builder.driverClassName("com.mysql.cj.jdbc.Driver");
+        } else if (driver != null && !driver.isBlank()) {
+            builder.driverClassName(driver);
+        } else {
+            builder.driverClassName("org.postgresql.Driver");
         }
 
         if (url != null) {

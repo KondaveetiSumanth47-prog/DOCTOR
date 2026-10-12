@@ -113,6 +113,9 @@ public class DatabaseConfig {
 
             if (host != null && !host.isBlank()) {
                 String jdbcUrl = "jdbc:postgresql://" + host + ":" + port + path;
+                if (!jdbcUrl.contains("?")) {
+                    jdbcUrl += "?sslmode=prefer";
+                }
                 log.info("Configured PostgreSQL datasource from DATABASE_URL for host: {}:{}", host, port);
 
                 return DataSourceBuilder.create()

@@ -1,17 +1,16 @@
 # Online Doctor Appointment System
 
-A modern, full-stack healthcare platform powered by **Spring Boot (Java 25)**, **React + Vite**, and **MySQL**. The system supports complete end-to-end workflows for patients, doctors, and hospital administrators.
+A modern, full-stack healthcare platform powered by **Spring Boot (Java 25)**, **React + Vite**, and **PostgreSQL / MySQL**. The system supports complete end-to-end workflows for patients, doctors, and hospital administrators.
 
 ---
 
-## 🚀 Live Deployment Links
+## 🚀 Live Cloud Deployment
 
-| Component | Platform | Deployment URL | Status |
+| Component | Platform | Deployment URL / Details | Status |
 | :--- | :--- | :--- | :--- |
 | **Frontend Application** | **Vercel** | [https://online-doctor-appointment-system-gamma.vercel.app](https://online-doctor-appointment-system-gamma.vercel.app) | **Live** ✅ |
-| **Full Project Application** | **Vercel + Cloud** | [https://online-doctor-appointment-system-gamma.vercel.app](https://online-doctor-appointment-system-gamma.vercel.app) | **Live** ✅ |
-| **Backend REST API** | **Railway / Cloud** | `https://<your-railway-domain>.up.railway.app/api` | Ready to deploy via Railway |
-| **Database** | **Railway MySQL** | Managed MySQL 8 container | Provisioned via Railway |
+| **Backend REST API** | **Render** | `https://doctor-appointment-backend.onrender.com/api` (Docker Web Service) | **Ready to Deploy** ✅ |
+| **Database** | **Render PostgreSQL** | Managed PostgreSQL 16/17 (`doctor-appointment-db`) | **Ready to Deploy** ✅ |
 | **GitHub Repository** | **GitHub** | [https://github.com/KondaveetiSumanth47-prog/Online-Doctor-Appointment-System](https://github.com/KondaveetiSumanth47-prog/Online-Doctor-Appointment-System) | **Main Branch** ✅ |
 
 ---
@@ -77,8 +76,9 @@ A modern, full-stack healthcare platform powered by **Spring Boot (Java 25)**, *
 
 - **Backend**: Spring Boot 4.1.x, Spring Security, Spring Data JPA, Java 25
 - **Frontend**: React 18, Vite 8, Modern CSS (Responsive + Dark Mode variables)
-- **Database**: MySQL 8 (Production/Local), H2 (In-memory test suite)
-- **Build Tools**: Apache Maven (`mvnw`), npm
+- **Database**: PostgreSQL 16+ (Render Cloud Default), MySQL 8 (Local / Fallback), H2 (In-memory test suite)
+- **Deployment**: Render (Docker Web Service + Managed PostgreSQL), Vercel (React + Vite SPA)
+- **Build Tools**: Apache Maven (`mvnw`), npm, Docker
 
 ---
 
@@ -142,6 +142,57 @@ npm run dev -- --host localhost --port 5173
 ```
 
 Open your browser at **`http://localhost:5173`**.
+
+---
+
+## ☁️ Deployment Guide (Render + Vercel)
+
+### 1. Backend + PostgreSQL on Render
+
+You can deploy using Render's Blueprint or manually:
+
+#### Option A: One-Click Blueprint Deployment (Recommended)
+1. Go to [Render Dashboard](https://dashboard.render.com/) ➔ **New** ➔ **Blueprint**.
+2. Connect your GitHub repository (`Online-Doctor-Appointment-System`).
+3. Render reads `render.yaml` automatically:
+   - Spawns a **Managed PostgreSQL** database (`doctor-appointment-db`).
+   - Provisions a **Docker Web Service** (`doctor-appointment-backend`).
+   - Automatically links the `DATABASE_URL` from the database to the backend.
+4. Click **Apply**.
+
+#### Option B: Manual Web Service Deployment
+1. **Create PostgreSQL Database**:
+   - In Render, click **New +** ➔ **PostgreSQL**.
+   - Name: `doctor-appointment-db`, Database: `doctor_appointment`, User: `doctor_app_user`.
+   - Copy the **Internal Database URL** (e.g., `postgres://doctor_app_user:...@dpg-...-a/doctor_appointment`).
+2. **Create Web Service**:
+   - Click **New +** ➔ **Web Service** ➔ Connect your GitHub repository.
+   - **Environment**: `Docker`
+   - **Root Directory**: `backend` (or leave empty to use root `Dockerfile`)
+   - **Dockerfile Path**: `Dockerfile`
+   - **Environment Variables**:
+     - `DATABASE_URL`: *(paste your internal PostgreSQL connection string)*
+     - `FRONTEND_ORIGIN`: `https://online-doctor-appointment-system-gamma.vercel.app`
+     - `SESSION_COOKIE_SAMESITE`: `none`
+     - `SESSION_COOKIE_SECURE`: `true`
+     - `ADMIN_EMAIL`: `admin@gmail.com`
+     - `ADMIN_PASSWORD`: `AdminPassword123!`
+3. Click **Deploy Web Service**. Once healthy, copy your service URL (e.g., `https://doctor-appointment-backend.onrender.com`).
+
+---
+
+### 2. Frontend on Vercel
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard) ➔ **Add New Project**.
+2. Import your GitHub repository (`Online-Doctor-Appointment-System`).
+3. In **Configure Project**:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: Click `Edit` and select `frontend`.
+4. In **Environment Variables**:
+   - Key: `VITE_API_BASE_URL`
+   - Value: `https://<your-render-backend>.onrender.com/api` (e.g., `https://doctor-appointment-backend.onrender.com/api`)
+5. Click **Deploy**.
+6. Vercel automatically deploys with SPA rewrites via `frontend/vercel.json`.
 
 ---
 
